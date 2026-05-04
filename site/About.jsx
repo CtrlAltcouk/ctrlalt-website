@@ -42,20 +42,8 @@ const PRINTERS = [
 function AboutSection() {
   return (
     <section id="about-section">
-      {/* mascot hero strip */}
-      <div style={{
-        position: 'relative',
-        background: `#f7a4a2 url(assets/Background.png) left center / contain no-repeat`,
-        height: 280,
-      }}>
-        <div style={{
-          position: 'absolute', inset: 0,
-          background: 'linear-gradient(180deg, var(--bg-0) 0%, transparent 20%, transparent 55%, var(--bg-0) 100%)',
-        }} />
-      </div>
-
-      <div className="mx-auto max-w-[1200px] px-6 lg:px-12 pt-10 pb-24 grid grid-cols-1 lg:grid-cols-12 gap-12">
-        <div className="lg:col-span-5" style={{ marginTop: -80, position: 'relative' }}>
+      <div className="mx-auto max-w-[1200px] px-6 lg:px-12 pt-16 pb-24 grid grid-cols-1 lg:grid-cols-12 gap-12">
+        <div className="lg:col-span-5">
           <img
             src="assets/ChrisLogo.png"
             alt="Chris — avatar"
