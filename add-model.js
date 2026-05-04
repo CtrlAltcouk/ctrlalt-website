@@ -33,8 +33,20 @@ async function fetchModelData(url) {
     ? ogTitle.split('|').map(s => s.trim()).find(s => s && !/^(3d printer|3mf file|creality)/i.test(s)) || ogTitle
     : null;
 
+  const ogDesc =
+    html.match(/property="og:description"\s+content="([^"]+)"/)?.[1] ||
+    html.match(/content="([^"]+)"\s+property="og:description"/)?.[1] ||
+    html.match(/name="description"\s+content="([^"]+)"/)?.[1] ||
+    html.match(/content="([^"]+)"\s+name="description"/)?.[1] || '';
+
+  // Decode HTML entities and take the first sentence
+  const decoded = ogDesc
+    .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&nbsp;/g, ' ');
+  const firstSentence = decoded.match(/^[^.!?]+[.!?]/)?.[0].trim() || decoded.slice(0, 120).trim();
+
   console.log('done.');
-  return { name: cleanTitle || titleTag || '', thumb: ogImage || null };
+  return { name: cleanTitle || titleTag || '', thumb: ogImage || null, blurb: firstSentence };
 }
 
 function toFilename(name) {
@@ -64,8 +76,8 @@ console.log('\n── Add a new model ──────────────
 const url = await prompt('Creality Cloud URL');
 if (!url.startsWith('http')) { console.error('Invalid URL.'); process.exit(1); }
 
-// 2. Fetch name + thumbnail
-const { name: fetchedName, thumb } = await fetchModelData(url);
+// 2. Fetch name, thumbnail, blurb
+const { name: fetchedName, thumb, blurb: fetchedBlurb } = await fetchModelData(url);
 
 // 3. Confirm / edit name
 const name = await prompt('Model name', fetchedName);
@@ -80,7 +92,7 @@ while (!['easy','medium','hard','expert'].includes(diff)) {
 const category = await prompt('Category (e.g. Desk, Electronics, Decor, Workspace)', 'TBC');
 
 // 6. Blurb
-const blurb = await prompt('Short description (blurb)');
+const blurb = await prompt('Short description (blurb)', fetchedBlurb);
 
 // 7. Print settings
 console.log('\n  Print settings — press Enter to keep the default:\n');
