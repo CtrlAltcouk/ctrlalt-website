@@ -246,7 +246,7 @@ function FileCard({ name, file, diff, category, nozzle, layer, infill, material,
           </span>
           {github && (
             <a href={github} target="_blank" rel="noreferrer" style={{ textDecoration: 'none' }}>
-              <Button size="sm" icon="Github" variant="secondary">GitHub</Button>
+              <Button size="sm" variant="primary"><LucideIcon name="Github" size={14} style={{ fill: 'var(--brand-pink)', color: 'var(--brand-pink)' }} />GitHub</Button>
             </a>
           )}
         </div>
