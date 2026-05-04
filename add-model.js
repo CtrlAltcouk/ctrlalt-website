@@ -1,56 +1,40 @@
 #!/usr/bin/env node
-// Usage: node add-model.js --url <creality-url> --diff <easy|medium|hard|expert> [--github <url>]
+// Run: node add-model.js
 
 import { readFileSync, writeFileSync } from 'fs';
+import { createInterface } from 'readline';
+import { execSync } from 'child_process';
 
-const args = {};
-for (let i = 2; i < process.argv.length; i++) {
-  if (process.argv[i].startsWith('--')) {
-    args[process.argv[i].slice(2)] = process.argv[i + 1];
-    i++;
-  }
-}
-
-if (!args.url || !args.diff) {
-  console.error('Usage: node add-model.js --url <creality-url> --diff <easy|medium|hard|expert> [--github <url>]');
-  process.exit(1);
-}
-
-const VALID_DIFFS = ['easy', 'medium', 'hard', 'expert'];
-if (!VALID_DIFFS.includes(args.diff)) {
-  console.error(`--diff must be one of: ${VALID_DIFFS.join(', ')}`);
-  process.exit(1);
-}
+const rl = createInterface({ input: process.stdin, output: process.stdout });
+const ask = (q) => new Promise(res => rl.question(q, res));
+const prompt = async (label, def) => {
+  const val = await ask(def ? `${label} [${def}]: ` : `${label}: `);
+  return val.trim() || def || '';
+};
 
 async function fetchModelData(url) {
-  console.log('Fetching Creality Cloud page...');
+  process.stdout.write('  Fetching Creality Cloud page... ');
   const res = await fetch(url, {
     headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36' }
   });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const html = await res.text();
 
-  // Extract og:title (handles both attribute orderings)
   const ogTitle =
     html.match(/property="og:title"\s+content="([^"]+)"/)?.[1] ||
     html.match(/content="([^"]+)"\s+property="og:title"/)?.[1];
-
-  // Extract og:image (handles both attribute orderings)
   const ogImage =
     html.match(/property="og:image"\s+content="([^"]+)"/)?.[1] ||
     html.match(/content="([^"]+)"\s+property="og:image"/)?.[1];
-
-  // Fallback: grab <title> and strip site name
   const titleTag = html.match(/<title>([^<]+)<\/title>/)?.[1]
     ?.replace(/\s*[-|].*?(Creality|Cloud).*$/i, '').trim();
 
-  // Creality og:title is "3D Printer Files | 3MF File | <Model Name> | Creality Cloud"
-  // Extract the model name segment
   const cleanTitle = ogTitle
     ? ogTitle.split('|').map(s => s.trim()).find(s => s && !/^(3d printer|3mf file|creality)/i.test(s)) || ogTitle
     : null;
-  const name = cleanTitle || titleTag || 'Unknown Model';
-  return { name, thumb: ogImage || null };
+
+  console.log('done.');
+  return { name: cleanTitle || titleTag || '', thumb: ogImage || null };
 }
 
 function toFilename(name) {
@@ -63,9 +47,9 @@ function formatEntry(e) {
     `    name: ${JSON.stringify(e.name)},`,
     `    file: ${JSON.stringify(e.file)},`,
     `    diff: '${e.diff}',`,
-    `    category: 'TBC',`,
-    `    nozzle: '0.4mm', layer: '0.2mm', infill: '15% grid', material: 'PLA', supports: 'No',`,
-    `    blurb: '',`,
+    `    category: ${JSON.stringify(e.category)},`,
+    `    nozzle: ${JSON.stringify(e.nozzle)}, layer: ${JSON.stringify(e.layer)}, infill: ${JSON.stringify(e.infill)}, material: ${JSON.stringify(e.material)}, supports: ${JSON.stringify(e.supports)},`,
+    `    blurb: ${JSON.stringify(e.blurb)},`,
     `    thumb: ${e.thumb ? JSON.stringify(e.thumb) : 'null'},`,
     `    url: ${JSON.stringify(e.url)},`,
   ];
@@ -74,37 +58,66 @@ function formatEntry(e) {
   return lines.join('\n');
 }
 
-const { name, thumb } = await fetchModelData(args.url);
-const file = toFilename(name);
+console.log('\n── Add a new model ─────────────────────────────\n');
 
-const entry = {
-  name,
-  file,
-  diff: args.diff,
-  thumb,
-  url: args.url,
-  github: args.github || null,
-};
+// 1. Creality URL
+const url = await prompt('Creality Cloud URL');
+if (!url.startsWith('http')) { console.error('Invalid URL.'); process.exit(1); }
 
-const filePath = 'site/Files.jsx';
-let src = readFileSync(filePath, 'utf8');
+// 2. Fetch name + thumbnail
+const { name: fetchedName, thumb } = await fetchModelData(url);
 
-// Insert before the first "Coming Soon" placeholder, or before the closing ];
-const comingSoonIdx = src.indexOf("name: 'Coming Soon'");
-let insertAt;
-if (comingSoonIdx !== -1) {
-  insertAt = src.lastIndexOf('  {', comingSoonIdx);
-} else {
-  insertAt = src.lastIndexOf('];');
+// 3. Confirm / edit name
+const name = await prompt('Model name', fetchedName);
+
+// 4. Difficulty
+let diff = '';
+while (!['easy','medium','hard','expert'].includes(diff)) {
+  diff = (await prompt('Difficulty (easy / medium / hard / expert)', 'easy')).toLowerCase();
 }
 
+// 5. Category
+const category = await prompt('Category (e.g. Desk, Electronics, Decor, Workspace)', 'TBC');
+
+// 6. Blurb
+const blurb = await prompt('Short description (blurb)');
+
+// 7. Print settings
+console.log('\n  Print settings — press Enter to keep the default:\n');
+const nozzle   = await prompt('  Nozzle',   '0.4mm');
+const layer    = await prompt('  Layer',    '0.2mm');
+const infill   = await prompt('  Infill',   '15% grid');
+const material = await prompt('  Material', 'PLA');
+const supInput = (await prompt('  Supports (yes / no)', 'no')).toLowerCase();
+const supports = supInput.startsWith('y') ? 'Yes' : 'No';
+
+// 8. GitHub (optional)
+const githubRaw = await prompt('\nGitHub URL (press Enter to skip)');
+const github = githubRaw.startsWith('http') ? githubRaw : null;
+
+rl.close();
+
+// Build entry
+const file = toFilename(name);
+const entry = { name, file, diff, category, nozzle, layer, infill, material, supports, blurb, thumb, url, github };
+
+// Insert into Files.jsx
+const filePath = 'site/Files.jsx';
+let src = readFileSync(filePath, 'utf8');
+const comingSoonIdx = src.indexOf("name: 'Coming Soon'");
+const insertAt = comingSoonIdx !== -1
+  ? src.lastIndexOf('  {', comingSoonIdx)
+  : src.lastIndexOf('];');
 src = src.slice(0, insertAt) + formatEntry(entry) + '\n' + src.slice(insertAt);
 writeFileSync(filePath, src);
 
-console.log(`\n✓ Added "${name}"`);
-console.log(`  Difficulty : ${entry.diff}`);
-console.log(`  File       : ${file}`);
-console.log(`  Thumb      : ${thumb || '(none found — add manually)'}`);
-if (entry.github) console.log(`  GitHub     : ${entry.github}`);
-console.log(`\nOpen site/Files.jsx and fill in: category, blurb, and print settings (nozzle, layer, infill, material, supports).`);
-console.log(`Then: git add . && git commit -m "Add ${name}" && git push`);
+// Git commit and push
+console.log('\n── Pushing to GitHub ────────────────────────────\n');
+try {
+  execSync(`git add site/Files.jsx`, { stdio: 'inherit' });
+  execSync(`git commit -m "Add model: ${name.replace(/"/g, "'")}"`, { stdio: 'inherit' });
+  execSync(`git push`, { stdio: 'inherit' });
+  console.log(`\n✓ Done! "${name}" is live — Cloudflare will deploy in ~30 seconds.`);
+} catch {
+  console.error('\nGit step failed. Your entry was saved to Files.jsx — run git add/commit/push manually.');
+}
