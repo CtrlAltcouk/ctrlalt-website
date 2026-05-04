@@ -72,26 +72,6 @@ const FILES = [
     thumb: 'https://pic2-cdn.creality.com/crealityCloud/upload/34ed3c658ab0f5da89eebbca666069bb.jpeg?x-oss-process=image/resize,w_700/format,webp/ignore-error,1',
     url: 'https://www.crealitycloud.com/model-detail/toyota-corolla-ae86-wallart?source=22&profileId=68334220aef686d178eac45e',
   },
-  {
-    name: 'Coming Soon',
-    file: 'placeholder.3mf',
-    diff: 'easy',
-    category: 'TBC',
-    nozzle: '0.4mm', layer: '0.2mm', infill: '15% grid', material: 'PLA', supports: 'No',
-    blurb: 'This file is on its way — check back soon.',
-    thumb: null,
-    url: '#',
-  },
-  {
-    name: 'Coming Soon',
-    file: 'placeholder.3mf',
-    diff: 'easy',
-    category: 'TBC',
-    nozzle: '0.4mm', layer: '0.2mm', infill: '15% grid', material: 'PLA', supports: 'No',
-    blurb: 'This file is on its way — check back soon.',
-    thumb: null,
-    url: '#',
-  },
 ];
 
 function FilesSection({ layout = 'grid' }) {
