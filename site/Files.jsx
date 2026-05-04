@@ -87,7 +87,18 @@ function FilesSection({ layout = 'grid' }) {
     return matchQ && matchD;
   });
 
-  const difficulties = ['all', 'easy', 'medium', 'hard', 'expert'];
+  const difficulties = ['all', 'easy', 'medium', 'hard', 'expert'  {
+    name: "BookCounter — E-Ink Book Reading Tracker Case",
+    file: "bookcounter_e_ink_book_reading_tracker_case.3mf",
+    diff: 'easy',
+    category: "Decor",
+    nozzle: "0.4mm", layer: "0.2mm", infill: "15% grid", material: "PLA", supports: "No",
+    blurb: "A compact two-piece enclosure for a physical book reading counter built around the Heltec Vision Master E213 V1.",
+    thumb: "https://pic2-cdn.creality.com/crealityCloud/upload/2977d5f56e35eada28db7402b1f756ab.webp",
+    url: "https://www.crealitycloud.com/model-detail/bookcounter-e-ink-book-reading-tracker-case?source=22&profileId=69f7bbed078ec1b7afdea020",
+    github: "https://github.com/CtrlAltcouk/BookCounter",
+  },
+];
 
   return (
     <section id="files-section" className="mx-auto max-w-[1200px] px-6 lg:px-12 py-24" style={{ borderTop: '1px solid var(--line-1)' }}>
