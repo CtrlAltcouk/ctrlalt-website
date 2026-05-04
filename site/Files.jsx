@@ -246,7 +246,7 @@ function FileCard({ name, file, diff, category, nozzle, layer, infill, material,
           </span>
           {github && (
             <a href={github} target="_blank" rel="noreferrer" style={{ textDecoration: 'none' }}>
-              <Button size="sm" icon="Github">GitHub</Button>
+              <Button size="sm" icon="Github" variant="secondary">GitHub</Button>
             </a>
           )}
         </div>
