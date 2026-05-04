@@ -113,13 +113,12 @@ rl.close();
 const file = toFilename(name);
 const entry = { name, file, diff, category, nozzle, layer, infill, material, supports, blurb, thumb, url, github };
 
-// Insert into Files.jsx
+// Insert into Files.jsx at the sentinel comment
 const filePath = 'site/Files.jsx';
 let src = readFileSync(filePath, 'utf8');
-const comingSoonIdx = src.indexOf("name: 'Coming Soon'");
-const insertAt = comingSoonIdx !== -1
-  ? src.lastIndexOf('  {', comingSoonIdx)
-  : src.lastIndexOf('];');
+const sentinel = '// ADD_MODELS_HERE';
+const insertAt = src.indexOf(sentinel);
+if (insertAt === -1) { console.error('Could not find // ADD_MODELS_HERE in Files.jsx'); process.exit(1); }
 src = src.slice(0, insertAt) + formatEntry(entry) + '\n' + src.slice(insertAt);
 writeFileSync(filePath, src);
 

@@ -72,6 +72,18 @@ const FILES = [
     thumb: 'https://pic2-cdn.creality.com/crealityCloud/upload/34ed3c658ab0f5da89eebbca666069bb.jpeg?x-oss-process=image/resize,w_700/format,webp/ignore-error,1',
     url: 'https://www.crealitycloud.com/model-detail/toyota-corolla-ae86-wallart?source=22&profileId=68334220aef686d178eac45e',
   },
+  {
+    name: "BookCounter — E-Ink Book Reading Tracker Case",
+    file: "bookcounter_e_ink_book_reading_tracker_case.3mf",
+    diff: 'easy',
+    category: "Electronics",
+    nozzle: "0.4mm", layer: "0.2mm", infill: "15% grid", material: "PLA", supports: "No",
+    blurb: "A compact two-piece enclosure for a physical book reading counter built around the Heltec Vision Master E213 V1.",
+    thumb: "https://pic2-cdn.creality.com/crealityCloud/upload/2977d5f56e35eada28db7402b1f756ab.webp",
+    url: "https://www.crealitycloud.com/model-detail/bookcounter-e-ink-book-reading-tracker-case?source=22&profileId=69f7bbed078ec1b7afdea020",
+    github: "https://github.com/CtrlAltcouk/BookCounter",
+  },
+// ADD_MODELS_HERE
 ];
 
 function FilesSection({ layout = 'grid' }) {
@@ -87,18 +99,7 @@ function FilesSection({ layout = 'grid' }) {
     return matchQ && matchD;
   });
 
-  const difficulties = ['all', 'easy', 'medium', 'hard', 'expert'  {
-    name: "BookCounter — E-Ink Book Reading Tracker Case",
-    file: "bookcounter_e_ink_book_reading_tracker_case.3mf",
-    diff: 'easy',
-    category: "Decor",
-    nozzle: "0.4mm", layer: "0.2mm", infill: "15% grid", material: "PLA", supports: "No",
-    blurb: "A compact two-piece enclosure for a physical book reading counter built around the Heltec Vision Master E213 V1.",
-    thumb: "https://pic2-cdn.creality.com/crealityCloud/upload/2977d5f56e35eada28db7402b1f756ab.webp",
-    url: "https://www.crealitycloud.com/model-detail/bookcounter-e-ink-book-reading-tracker-case?source=22&profileId=69f7bbed078ec1b7afdea020",
-    github: "https://github.com/CtrlAltcouk/BookCounter",
-  },
-];
+  const difficulties = ['all', 'easy', 'medium', 'hard', 'expert'];
 
   return (
     <section id="files-section" className="mx-auto max-w-[1200px] px-6 lg:px-12 py-24" style={{ borderTop: '1px solid var(--line-1)' }}>
@@ -244,16 +245,8 @@ function FileCard({ name, file, diff, category, nozzle, layer, infill, material,
             Creality Cloud
           </span>
           {github && (
-            <a href={github} target="_blank" rel="noreferrer" title="View on GitHub" style={{
-              display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-              width: 28, height: 28, borderRadius: 6, textDecoration: 'none',
-              background: 'var(--bg-3)', border: '1px solid var(--line-1)',
-              color: 'var(--fg-2)', transition: 'all 200ms cubic-bezier(0.16,1,0.3,1)',
-            }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--brand-pink-line)'; e.currentTarget.style.color = 'var(--fg-1)'; }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--line-1)'; e.currentTarget.style.color = 'var(--fg-2)'; }}
-            >
-              <LucideIcon name="Github" size={14} />
+            <a href={github} target="_blank" rel="noreferrer" style={{ textDecoration: 'none' }}>
+              <Button size="sm" icon="Github">GitHub</Button>
             </a>
           )}
         </div>
@@ -305,16 +298,8 @@ function FileRow({ name, file, diff, category, nozzle, layer, infill, material, 
       </div>
       <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
         {github && (
-          <a href={github} target="_blank" rel="noreferrer" title="View on GitHub" style={{
-            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-            width: 32, height: 32, borderRadius: 6, textDecoration: 'none',
-            background: 'var(--bg-3)', border: '1px solid var(--line-1)',
-            color: 'var(--fg-2)', transition: 'all 200ms cubic-bezier(0.16,1,0.3,1)',
-          }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--brand-pink-line)'; e.currentTarget.style.color = 'var(--fg-1)'; }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--line-1)'; e.currentTarget.style.color = 'var(--fg-2)'; }}
-          >
-            <LucideIcon name="Github" size={15} />
+          <a href={github} target="_blank" rel="noreferrer" style={{ textDecoration: 'none' }}>
+            <Button size="sm" icon="Github">GitHub</Button>
           </a>
         )}
         <a href={url} target="_blank" rel="noreferrer" style={{ textDecoration: 'none' }}>
