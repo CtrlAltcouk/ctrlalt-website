@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ScaleCalc — 3D Model Scale Calculator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Fira+Code:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg:      #06070d;
+            --surf:    #0d1018;
+            --surf2:   #131720;
+            --surf3:   #1a1f2e;
+            --brd:     #1e2435;
+            --brd-h:   #2e3a55;
+            --cyan:    #00e5ff;
+            --cyan-d:  rgba(0,229,255,0.08);
+            --cyan-g:  0 0 22px rgba(0,229,255,0.25);
+            --green:   #4ade80;
+            --red-ax:  #ff6b6b;
+            --grn-ax:  #4ade80;
+            --blu-ax:  #60a5fa;
+            --amber:   #fbbf24;
+            --purple:  #a78bfa;
+            --txt:     #7b8db0;
+            --txt-m:   #9baac8;
+            --txt-b:   #e2e8f5;
+            --txt-d:   #3d4a65;
+            --fd: 'Syne', sans-serif;
+            --fm: 'Fira Code', monospace;
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            background: var(--bg);
+            color: var(--txt);
+            font-family: var(--fd);
+            min-height: 100vh;
+        }
+        body::before {
+            content:'';
+            position:fixed; inset:0;
+            background: radial-gradient(ellipse 90% 55% at 50% -5%, rgba(0,229,255,0.055) 0%, transparent 65%);
+            pointer-events:none; z-index:0;
+        }
+        body::after {
+            content:'';
+            position:fixed; inset:0;
+            background-image:
+                linear-gradient(rgba(0,229,255,0.028) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0,229,255,0.028) 1px, transparent 1px);
+            background-size: 28px 28px;
+            pointer-events:none; z-index:0;
+        }
+
+        .app {
+            position:relative; z-index:1;
+            max-width: 760px;
+            margin: 0 auto;
+            padding: 52px 22px 80px;
+        }
+
+        /* ── HEADER ── */
+        .hdr { text-align:center; margin-bottom:44px; }
+        .hdr-eye {
+            font-family:var(--fm);
+            font-size:10px; color:var(--cyan);
+            letter-spacing:4px; text-transform:uppercase;
+            margin-bottom:6px; opacity:.7;
+        }
+        .hdr-title {
+            font-size: clamp(2.4rem, 9vw, 4rem);
+            font-weight:800; color:var(--txt-b);
+            letter-spacing:-2px; line-height:1;
+        }
+        .hdr-title .hl {
+            color: var(--cyan);
+            animation: cyanPulse 4s ease-in-out infinite;
+        }
+        @keyframes cyanPulse {
+            0%,100% { text-shadow: 0 0 10px rgba(0,229,255,0.35); }
+            50%      { text-shadow: 0 0 26px rgba(0,229,255,0.7), 0 0 50px rgba(0,229,255,0.2); }
+        }
+        .hdr-sub {
+            font-family:var(--fm); font-size:11px;
+            color:var(--txt-d); letter-spacing:3px; text-transform:uppercase; margin-top:10px;
+        }
+
+        /* ── TABS ── */
+        .tabs {
+            display:flex; background:var(--surf);
+            border:1px solid var(--brd); border-radius:10px;
+            padding:4px; margin-bottom:20px; gap:4px;
+        }
+        .tab {
+            flex:1; padding:11px; text-align:center;
+            font-size:12px; font-weight:700; letter-spacing:2px; text-transform:uppercase;
+            border-radius:7px; cursor:pointer; border:none;
+            background:transparent; color:var(--txt-d);
+            transition:all .2s; font-family:var(--fd);
+        }
+        .tab:hover { color:var(--txt-m); }
+        .tab.on {
+            background:var(--surf2); color:var(--cyan);
+            box-shadow:0 0 0 1px var(--brd-h), inset 0 0 12px rgba(0,229,255,0.04);
+        }
+
+        /* ── CARD ── */
+        .card {
+            background:var(--surf); border:1px solid var(--brd);
+            border-radius:12px; padding:28px; margin-bottom:16px;
+        }
+
+        /* ── DIM GRID ── */
+        .dim-grid {
+            display:grid;
+            grid-template-columns:1fr 48px 1fr;
+            gap:8px; align-items:start; margin-bottom:26px;
+        }
+        .dim-panel h3 {
+            font-family:var(--fm); font-size:9px; font-weight:700;
+            letter-spacing:3px; text-transform:uppercase;
+            color:var(--txt-d); margin-bottom:14px;
+        }
+        .dim-fields { display:flex; flex-direction:column; gap:9px; }
+        .dim-row { display:grid; grid-template-columns:24px 1fr; gap:8px; align-items:center; }
+        .axis {
+            font-family:var(--fm); font-size:11px; font-weight:700;
+            text-align:center; letter-spacing:0;
+        }
+        .ax-x { color:var(--red-ax); }
+        .ax-y { color:var(--grn-ax); }
+        .ax-z { color:var(--blu-ax); }
+
+        input[type="number"] {
+            background:var(--bg); border:1px solid var(--brd);
+            color:var(--txt-b); font-family:var(--fm); font-size:14px;
+            padding:9px 11px; border-radius:6px; width:100%; outline:none;
+            transition:border-color .15s, box-shadow .15s;
+            -webkit-appearance:none; appearance:none; text-align:right;
+        }
+        input[type="number"]:focus {
+            border-color:var(--cyan);
+            box-shadow:0 0 0 2px rgba(0,229,255,0.1);
+        }
+        input[type="number"]::placeholder { color:var(--txt-d); }
+
+        /* ── ARROW COL ── */
+        .arr-col {
+            display:flex; align-items:center; justify-content:center;
+            padding-top:34px;
+        }
+        .arr {
+            font-size:18px; color:var(--txt-d);
+            display:flex; flex-direction:column; align-items:center; gap:4px;
+        }
+        .arr-line {
+            width:1px; height:20px;
+            background:linear-gradient(var(--brd), transparent);
+        }
+
+        /* Mode 2 scale input */
+        .scale-panel { padding-top:4px; }
+        .scale-panel h3 {
+            font-family:var(--fm); font-size:9px; font-weight:700;
+            letter-spacing:3px; text-transform:uppercase;
+            color:var(--txt-d); margin-bottom:14px;
+        }
+        .pct-wrap { display:flex; align-items:center; gap:8px; }
+        .pct-wrap input[type="number"] {
+            font-size:20px; padding:12px 11px; text-align:right;
+        }
+        .pct-sym { font-family:var(--fm); font-size:18px; color:var(--txt-d); }
+
+        /* ── RESULT ── */
+        .result {
+            background:var(--surf2); border:1px solid var(--brd-h);
+            border-radius:10px; padding:28px;
+            min-height:128px; text-align:center;
+            display:flex; flex-direction:column; align-items:center;
+            justify-content:center; gap:10px;
+            transition:border-color .3s;
+        }
+        .result.has-result { border-color: rgba(0,229,255,0.2); }
+        .result-hint {
+            font-family:var(--fm); font-size:11px;
+            color:var(--txt-d); letter-spacing:2px;
+        }
+
+        /* Uniform scale */
+        .big-pct {
+            font-family:var(--fm); font-size:3.6rem; font-weight:700;
+            letter-spacing:-2px; line-height:1; transition:color .3s;
+        }
+        .big-pct.up   { color:var(--green); }
+        .big-pct.down { color:var(--cyan); }
+        .big-pct.flat { color:var(--txt-m); }
+
+        .tag {
+            font-family:var(--fm); font-size:9px; letter-spacing:3px;
+            text-transform:uppercase; padding:3px 12px; border-radius:20px;
+        }
+        .tag.up   { background:rgba(74,222,128,0.1); color:var(--green); }
+        .tag.down { background:var(--cyan-d);         color:var(--cyan); }
+        .tag.flat { background:rgba(255,255,255,0.04); color:var(--txt-m); }
+
+        /* Per-axis result */
+        .axes-row { display:flex; gap:24px; flex-wrap:wrap; justify-content:center; }
+        .axis-block { display:flex; flex-direction:column; align-items:center; gap:4px; }
+        .axis-lbl { font-family:var(--fm); font-size:9px; letter-spacing:2px; text-transform:uppercase; }
+        .axis-val { font-family:var(--fm); font-size:1.7rem; font-weight:700; }
+
+        /* Mode 2 dims result */
+        .dims-row { display:flex; align-items:center; gap:14px; flex-wrap:wrap; justify-content:center; }
+        .dim-block { display:flex; flex-direction:column; align-items:center; gap:3px; }
+        .dim-lbl { font-family:var(--fm); font-size:9px; letter-spacing:2px; text-transform:uppercase; }
+        .dim-val { font-family:var(--fm); font-size:1.9rem; font-weight:700; }
+        .dim-val .u { font-size:.95rem; color:var(--txt-d); font-weight:400; }
+        .dim-sep { font-family:var(--fm); font-size:1.3rem; color:var(--txt-d); }
+
+        /* Warning */
+        .warn {
+            background:rgba(251,191,36,0.07); border:1px solid rgba(251,191,36,0.22);
+            border-radius:6px; padding:8px 14px;
+            font-family:var(--fm); font-size:11px; color:var(--amber);
+            letter-spacing:.5px; max-width:420px; text-align:center;
+        }
+
+        /* Copy btn */
+        .copy-btn {
+            background:transparent; border:1px solid var(--brd-h);
+            color:var(--txt-d); font-family:var(--fm); font-size:9px;
+            letter-spacing:2px; text-transform:uppercase;
+            padding:6px 14px; border-radius:5px; cursor:pointer;
+            transition:all .15s; margin-top:2px;
+        }
+        .copy-btn:hover { color:var(--cyan); border-color:var(--cyan); }
+
+        /* Swap btn */
+        .swap-row { text-align:center; margin-bottom:4px; }
+        .swap-btn {
+            background:transparent; border:1px solid var(--brd);
+            color:var(--txt-d); font-family:var(--fm); font-size:9px;
+            letter-spacing:2px; text-transform:uppercase;
+            padding:5px 14px; border-radius:5px; cursor:pointer;
+            transition:all .15s;
+        }
+        .swap-btn:hover { color:var(--txt-m); border-color:var(--brd-h); }
+
+        @media (max-width:560px) {
+            .dim-grid { grid-template-columns:1fr; gap:16px; }
+            .arr-col { padding-top:0; }
+            .arr { flex-direction:row; }
+            .arr-line { width:20px; height:1px; background:linear-gradient(90deg, var(--brd), transparent); }
+        }
+    </style>
+</head>
+<body>
+<div class="app">
+
+    <header class="hdr">
+        <p class="hdr-eye">// 3D Print Studio</p>
+        <h1 class="hdr-title">SCALE<span class="hl">CALC</span></h1>
+        <p class="hdr-sub">Model Dimension Calculator</p>
+    </header>
+
+    <div class="tabs">
+        <button class="tab on" id="t-scale" onclick="setMode('scale')">Find Scale %</button>
+        <button class="tab"    id="t-size"  onclick="setMode('size')">Find Target Size</button>
+    </div>
+
+    <div class="card">
+
+        <!-- MODE: Find Scale % -->
+        <div id="m-scale">
+            <div class="dim-grid">
+                <div class="dim-panel">
+                    <h3>Original Size</h3>
+                    <div class="dim-fields">
+                        <div class="dim-row"><span class="axis ax-x">X</span><input type="number" id="ox" min="0.001" step="any" placeholder="100" oninput="calcScale()"></div>
+                        <div class="dim-row"><span class="axis ax-y">Y</span><input type="number" id="oy" min="0.001" step="any" placeholder="100" oninput="calcScale()"></div>
+                        <div class="dim-row"><span class="axis ax-z">Z</span><input type="number" id="oz" min="0.001" step="any" placeholder="100" oninput="calcScale()"></div>
+                    </div>
+                </div>
+                <div class="arr-col">
+                    <div class="arr">
+                        <div class="arr-line"></div>
+                        <span>→</span>
+                        <div class="arr-line"></div>
+                    </div>
+                </div>
+                <div class="dim-panel">
+                    <h3>Target Size</h3>
+                    <div class="dim-fields">
+                        <div class="dim-row"><span class="axis ax-x">X</span><input type="number" id="tx" min="0.001" step="any" placeholder="101" oninput="calcScale()"></div>
+                        <div class="dim-row"><span class="axis ax-y">Y</span><input type="number" id="ty" min="0.001" step="any" placeholder="101" oninput="calcScale()"></div>
+                        <div class="dim-row"><span class="axis ax-z">Z</span><input type="number" id="tz" min="0.001" step="any" placeholder="101" oninput="calcScale()"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="swap-row">
+                <button class="swap-btn" onclick="swapDims()">⇄ Swap Original / Target</button>
+            </div>
+        </div>
+
+        <!-- MODE: Find Target Size -->
+        <div id="m-size" style="display:none">
+            <div class="dim-grid">
+                <div class="dim-panel">
+                    <h3>Original Size</h3>
+                    <div class="dim-fields">
+                        <div class="dim-row"><span class="axis ax-x">X</span><input type="number" id="sox" min="0.001" step="any" placeholder="100" oninput="calcSize()"></div>
+                        <div class="dim-row"><span class="axis ax-y">Y</span><input type="number" id="soy" min="0.001" step="any" placeholder="100" oninput="calcSize()"></div>
+                        <div class="dim-row"><span class="axis ax-z">Z</span><input type="number" id="soz" min="0.001" step="any" placeholder="100" oninput="calcSize()"></div>
+                    </div>
+                </div>
+                <div class="arr-col">
+                    <div class="arr">
+                        <div class="arr-line"></div>
+                        <span>→</span>
+                        <div class="arr-line"></div>
+                    </div>
+                </div>
+                <div class="dim-panel">
+                    <div class="scale-panel">
+                        <h3>Scale %</h3>
+                        <div class="pct-wrap">
+                            <input type="number" id="spct" min="0.001" step="any" placeholder="101" oninput="calcSize()">
+                            <span class="pct-sym">%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RESULT -->
+        <div class="result" id="result">
+            <span class="result-hint">// enter dimensions above</span>
+        </div>
+    </div>
+
+</div>
+<script>
+let mode = 'scale';
+
+function setMode(m) {
+    mode = m;
+    document.getElementById('m-scale').style.display = m==='scale' ? '' : 'none';
+    document.getElementById('m-size').style.display  = m==='size'  ? '' : 'none';
+    document.getElementById('t-scale').className = 'tab' + (m==='scale' ? ' on' : '');
+    document.getElementById('t-size').className  = 'tab' + (m==='size'  ? ' on' : '');
+    clearResult();
+    if(m==='scale') calcScale(); else calcSize();
+}
+
+function clearResult() {
+    const r = document.getElementById('result');
+    r.className = 'result';
+    r.innerHTML = '<span class="result-hint">// enter dimensions above</span>';
+}
+
+function g(id) { return parseFloat(document.getElementById(id).value); }
+
+function fmtPct(n) {
+    let s = n.toFixed(4);
+    // Strip trailing zeros but keep at least 2 decimal places
+    while (s.length > s.indexOf('.') + 3 && s.endsWith('0')) {
+        s = s.slice(0, -1);
+    }
+    return s + '%';
+}
+
+function fmtMm(n) {
+    let s = n.toFixed(3);
+    while (s.length > s.indexOf('.') + 2 && s.endsWith('0')) {
+        s = s.slice(0, -1);
+    }
+    return s;
+}
+
+function scaleCls(pct) {
+    if (pct > 100.0005) return 'up';
+    if (pct < 99.9995)  return 'down';
+    return 'flat';
+}
+
+function scaleTag(pct) {
+    if (pct > 100.0005) return 'Enlarging';
+    if (pct < 99.9995)  return 'Shrinking';
+    return 'No Change';
+}
+
+function calcScale() {
+    const ox=g('ox'), oy=g('oy'), oz=g('oz');
+    const tx=g('tx'), ty=g('ty'), tz=g('tz');
+    const r = document.getElementById('result');
+
+    if (!ox||!oy||!oz||!tx||!ty||!tz||ox<=0||oy<=0||oz<=0||tx<=0||ty<=0||tz<=0) {
+        clearResult(); return;
+    }
+
+    const sx = (tx/ox)*100;
+    const sy = (ty/oy)*100;
+    const sz = (tz/oz)*100;
+    const isUniform = Math.abs(sx-sy)<0.0005 && Math.abs(sy-sz)<0.0005;
+
+    r.className = 'result has-result';
+
+    if (isUniform) {
+        const cls = scaleCls(sx);
+        const tag = scaleTag(sx);
+        r.innerHTML = `
+            <div class="big-pct ${cls}">${fmtPct(sx)}</div>
+            <span class="tag ${cls}">${tag}</span>
+            <button class="copy-btn" id="cpybtn" onclick="copyVal('${fmtPct(sx)}')">Copy Value</button>
+        `;
+    } else {
+        const avg = (sx+sy+sz)/3;
+        const cls = scaleCls(avg);
+        const tag = scaleTag(avg);
+        r.innerHTML = `
+            <div class="axes-row">
+                <div class="axis-block">
+                    <span class="axis-lbl" style="color:var(--red-ax)">X Axis</span>
+                    <span class="axis-val" style="color:var(--red-ax)">${fmtPct(sx)}</span>
+                </div>
+                <div class="axis-block">
+                    <span class="axis-lbl" style="color:var(--grn-ax)">Y Axis</span>
+                    <span class="axis-val" style="color:var(--grn-ax)">${fmtPct(sy)}</span>
+                </div>
+                <div class="axis-block">
+                    <span class="axis-lbl" style="color:var(--blu-ax)">Z Axis</span>
+                    <span class="axis-val" style="color:var(--blu-ax)">${fmtPct(sz)}</span>
+                </div>
+            </div>
+            <div class="warn">⚠ Non-uniform — set each axis separately in your slicer</div>
+        `;
+    }
+}
+
+function calcSize() {
+    const ox=g('sox'), oy=g('soy'), oz=g('soz');
+    const pct=g('spct');
+    const r = document.getElementById('result');
+
+    if (!ox||!oy||!oz||!pct||ox<=0||oy<=0||oz<=0||pct<=0) {
+        clearResult(); return;
+    }
+
+    const f = pct/100;
+    const nx=ox*f, ny=oy*f, nz=oz*f;
+    const cls = scaleCls(pct);
+    const tag = scaleTag(pct);
+
+    r.className = 'result has-result';
+    r.innerHTML = `
+        <div class="dims-row">
+            <div class="dim-block">
+                <span class="dim-lbl" style="color:var(--red-ax)">X</span>
+                <span class="dim-val" style="color:var(--red-ax)">${fmtMm(nx)}<span class="u"> mm</span></span>
+            </div>
+            <span class="dim-sep">×</span>
+            <div class="dim-block">
+                <span class="dim-lbl" style="color:var(--grn-ax)">Y</span>
+                <span class="dim-val" style="color:var(--grn-ax)">${fmtMm(ny)}<span class="u"> mm</span></span>
+            </div>
+            <span class="dim-sep">×</span>
+            <div class="dim-block">
+                <span class="dim-lbl" style="color:var(--blu-ax)">Z</span>
+                <span class="dim-val" style="color:var(--blu-ax)">${fmtMm(nz)}<span class="u"> mm</span></span>
+            </div>
+        </div>
+        <span class="tag ${cls}">${tag}</span>
+    `;
+}
+
+function swapDims() {
+    const fields = [['ox','tx'],['oy','ty'],['oz','tz']];
+    fields.forEach(([a,b]) => {
+        const va = document.getElementById(a).value;
+        const vb = document.getElementById(b).value;
+        document.getElementById(a).value = vb;
+        document.getElementById(b).value = va;
+    });
+    calcScale();
+}
+
+function copyVal(txt) {
+    navigator.clipboard.writeText(txt).catch(() => {
+        const t = document.createElement('textarea');
+        t.value = txt; document.body.appendChild(t); t.select();
+        document.execCommand('copy'); t.remove();
+    });
+    const btn = document.getElementById('cpybtn');
+    if (btn) { btn.textContent = 'Copied!'; setTimeout(() => { btn.textContent = 'Copy Value'; }, 1500); }
+}
+</script>
+</body>
+</html>

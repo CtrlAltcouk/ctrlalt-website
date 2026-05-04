@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FilamentCalc</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Oxanium:wght@300;400;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #080a0e;
+            --surface: #0f1219;
+            --surface2: #161b26;
+            --surface3: #1c2230;
+            --border: #242b3d;
+            --border-hover: #3a4560;
+            --accent: #ff6b35;
+            --accent-dim: rgba(255,107,53,0.1);
+            --accent-glow: 0 0 22px rgba(255,107,53,0.35);
+            --cyan: #00d4ff;
+            --green: #2dd4bf;
+            --text: #8895b3;
+            --text-mid: #b0bdd4;
+            --text-bright: #dce4f5;
+            --text-dim: #3d4a65;
+            --font-head: 'Oxanium', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--font-head);
+            min-height: 100vh;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(0,212,255,0.022) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0,212,255,0.022) 1px, transparent 1px),
+                linear-gradient(rgba(0,212,255,0.008) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0,212,255,0.008) 1px, transparent 1px);
+            background-size: 80px 80px, 80px 80px, 16px 16px, 16px 16px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            left: 0; right: 0;
+            height: 35%;
+            background: linear-gradient(transparent, rgba(0,212,255,0.012), transparent);
+            animation: scan 10s linear infinite;
+            pointer-events: none;
+            z-index: 0;
+            top: -35%;
+        }
+
+        @keyframes scan {
+            from { top: -35%; }
+            to   { top: 135%; }
+        }
+
+        .app {
+            position: relative;
+            z-index: 1;
+            max-width: 1040px;
+            margin: 0 auto;
+            padding: 48px 24px 80px;
+        }
+
+        /* HEADER */
+        .hdr { margin-bottom: 52px; }
+        .hdr-eye {
+            font-family: var(--font-mono);
+            font-size: 10px;
+            color: var(--accent);
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+            opacity: 0.75;
+        }
+        .hdr-title {
+            font-size: clamp(2.4rem, 6vw, 4rem);
+            font-weight: 800;
+            color: var(--text-bright);
+            letter-spacing: -2px;
+            line-height: 1;
+        }
+        .hdr-title .hl {
+            color: var(--accent);
+            animation: titlePulse 4s ease-in-out infinite;
+        }
+        @keyframes titlePulse {
+            0%,100% { text-shadow: 0 0 12px rgba(255,107,53,0.4); }
+            50%      { text-shadow: 0 0 28px rgba(255,107,53,0.7), 0 0 50px rgba(255,107,53,0.2); }
+        }
+        .hdr-sub {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: var(--text-dim);
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            margin-top: 8px;
+        }
+        .hdr-rule {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-top: 22px;
+        }
+        .hdr-line {
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(90deg, var(--accent) 0%, rgba(255,107,53,0.15) 50%, transparent 100%);
+        }
+        .hdr-ver {
+            font-family: var(--font-mono);
+            font-size: 9px;
+            color: var(--text-dim);
+            letter-spacing: 2px;
+        }
+
+        /* PANEL */
+        .panel {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        .panel-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px 22px;
+            background: var(--surface2);
+            border-bottom: 1px solid var(--border);
+        }
+        .panel-label {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+        }
+        .panel-idx {
+            font-family: var(--font-mono);
+            font-size: 9px;
+            letter-spacing: 1px;
+            color: var(--accent);
+            background: var(--accent-dim);
+            border: 1px solid rgba(255,107,53,0.25);
+            padding: 3px 8px;
+            border-radius: 4px;
+        }
+        .panel-label h2 {
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--text-bright);
+        }
+        .panel-body { padding: 22px; }
+
+        /* BUTTONS */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-family: var(--font-head);
+            font-weight: 700;
+            font-size: 11px;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            transition: all 0.15s;
+            white-space: nowrap;
+        }
+        .btn-primary {
+            background: var(--accent);
+            color: #fff;
+            padding: 9px 17px;
+        }
+        .btn-primary:hover {
+            background: #ff7e4d;
+            box-shadow: var(--accent-glow);
+            transform: translateY(-1px);
+        }
+        .btn-primary:active { transform: none; }
+
+        .btn-add-row {
+            width: 100%;
+            justify-content: center;
+            background: transparent;
+            color: var(--accent);
+            border: 1px dashed rgba(255,107,53,0.35);
+            padding: 11px;
+            margin-top: 12px;
+            border-radius: 6px;
+        }
+        .btn-add-row:hover {
+            background: var(--accent-dim);
+            border-color: var(--accent);
+        }
+        .btn-del {
+            background: transparent;
+            color: var(--text-dim);
+            border: 1px solid transparent;
+            padding: 7px 9px;
+            font-size: 14px;
+            border-radius: 4px;
+        }
+        .btn-del:hover {
+            color: #ff4060;
+            background: rgba(255,64,96,0.1);
+            border-color: rgba(255,64,96,0.2);
+        }
+
+        /* FIELDS */
+        .field { display: flex; flex-direction: column; gap: 5px; }
+        .flabel {
+            font-family: var(--font-mono);
+            font-size: 9px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--text-dim);
+        }
+        input[type="text"],
+        input[type="number"],
+        select {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            color: var(--text-bright);
+            font-family: var(--font-mono);
+            font-size: 13px;
+            padding: 8px 11px;
+            border-radius: 5px;
+            width: 100%;
+            outline: none;
+            transition: border-color 0.15s, box-shadow 0.15s;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+        input:focus, select:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px rgba(255,107,53,0.1);
+        }
+        input[type="number"] { text-align: right; }
+        input[type="color"] {
+            position: absolute;
+            opacity: 0;
+            width: 1px;
+            height: 1px;
+            pointer-events: none;
+        }
+        select option { background: var(--surface2); }
+        .sel-wrap { position: relative; }
+        .sel-wrap::after {
+            content: '▾';
+            position: absolute;
+            right: 9px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-dim);
+            font-size: 11px;
+            pointer-events: none;
+        }
+        .sel-wrap select { padding-right: 26px; }
+
+        /* FILAMENT TYPE ROWS */
+        .ft-rows { display: flex; flex-direction: column; gap: 10px; }
+        .ft-row {
+            display: grid;
+            grid-template-columns: 1.6fr 1fr auto auto;
+            gap: 12px;
+            align-items: end;
+            padding: 15px;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 7px;
+            transition: border-color 0.15s;
+            animation: rowIn 0.18s ease;
+        }
+        .ft-row:hover { border-color: var(--border-hover); }
+
+        @keyframes rowIn {
+            from { opacity: 0; transform: translateY(-6px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .swatch-btn {
+            width: 34px;
+            height: 34px;
+            border-radius: 6px;
+            border: 2px solid var(--border);
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
+        }
+        .swatch-btn:hover {
+            transform: scale(1.1);
+            border-color: var(--text-mid);
+        }
+
+        /* PRINT LINES */
+        .pl-thead {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1.6fr 88px 36px;
+            gap: 10px;
+            padding: 5px 14px;
+            font-family: var(--font-mono);
+            font-size: 9px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--text-dim);
+            margin-bottom: 4px;
+        }
+        .pl-thead span:nth-child(2),
+        .pl-thead span:nth-child(4) { text-align: right; }
+
+        .pl-rows { display: flex; flex-direction: column; gap: 8px; }
+        .pl-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1.6fr 88px 36px;
+            gap: 10px;
+            align-items: center;
+            padding: 9px 14px;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 7px;
+            transition: border-color 0.15s;
+            animation: rowIn 0.18s ease;
+        }
+        .pl-row:hover { border-color: var(--border-hover); }
+
+        .ft-badge { display: flex; align-items: center; gap: 7px; }
+        .ft-dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            transition: background 0.2s;
+        }
+        .line-cost {
+            font-family: var(--font-mono);
+            font-size: 13px;
+            color: var(--green);
+            text-align: right;
+        }
+        .empty {
+            padding: 32px;
+            text-align: center;
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: var(--text-dim);
+            letter-spacing: 2px;
+        }
+
+        /* SUMMARY */
+        .sum-cards {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 14px;
+            margin-bottom: 26px;
+        }
+        .sum-card {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 20px;
+            transition: border-color 0.15s;
+        }
+        .sum-card:hover { border-color: var(--border-hover); }
+        .sum-card.hi {
+            border-color: rgba(255,107,53,0.35);
+            background: var(--accent-dim);
+        }
+        .sum-card.hi:hover { border-color: rgba(255,107,53,0.6); }
+        .sum-lbl {
+            font-family: var(--font-mono);
+            font-size: 9px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--text-dim);
+            margin-bottom: 10px;
+        }
+        .sum-val {
+            font-family: var(--font-mono);
+            font-size: 2.1rem;
+            font-weight: 700;
+            color: var(--text-bright);
+            line-height: 1;
+            letter-spacing: -1px;
+        }
+        .sum-val.orange { color: var(--accent); }
+        .sum-val .unit { font-size: 1rem; color: var(--text-dim); font-weight: 400; letter-spacing: 0; }
+
+        /* SPOOL TOGGLE */
+        .tog-wrap { display: flex; align-items: center; gap: 10px; }
+        .tog-lbl {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            letter-spacing: 1px;
+            user-select: none;
+            transition: color 0.2s;
+        }
+        .tog-lbl.on  { color: var(--accent); }
+        .tog-lbl.off { color: var(--text-dim); }
+        .toggle {
+            position: relative;
+            width: 48px;
+            height: 24px;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        .toggle input { display: none; }
+        .tog-bg {
+            position: absolute;
+            inset: 0;
+            background: var(--surface3);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            transition: background 0.25s, border-color 0.25s;
+        }
+        .toggle input:checked ~ .tog-bg {
+            background: var(--accent-dim);
+            border-color: rgba(255,107,53,0.45);
+        }
+        .tog-knob {
+            position: absolute;
+            top: 3px; left: 3px;
+            width: 16px; height: 16px;
+            background: var(--accent);
+            border-radius: 50%;
+            transition: transform 0.25s cubic-bezier(.4,.1,.2,1.4);
+            box-shadow: 0 0 8px rgba(255,107,53,0.55);
+        }
+        .toggle input:checked ~ .tog-knob { transform: translateX(24px); }
+
+        /* BREAKDOWN */
+        .bk-sep {
+            border-top: 1px solid var(--border);
+            padding-top: 20px;
+        }
+        .bk-title {
+            font-family: var(--font-mono);
+            font-size: 9px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--text-dim);
+            margin-bottom: 14px;
+        }
+        .bk-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .bk-table th {
+            font-family: var(--font-mono);
+            font-size: 9px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--text-dim);
+            text-align: left;
+            padding: 0 12px 10px;
+            border-bottom: 1px solid var(--border);
+        }
+        .bk-table th:not(:first-child) { text-align: right; }
+        .bk-table td {
+            font-family: var(--font-mono);
+            font-size: 13px;
+            padding: 11px 12px;
+            border-bottom: 1px solid rgba(36,43,61,0.5);
+            color: var(--text-mid);
+        }
+        .bk-table tr:last-child td { border-bottom: none; }
+        .bk-table tr:hover td { background: rgba(255,255,255,0.012); }
+        .bk-table td:not(:first-child) { text-align: right; }
+        .bk-table .td-cost { color: var(--accent); }
+        .bk-table .td-bright { color: var(--text-bright); }
+        .ft-cell { display: flex; align-items: center; gap: 8px; }
+        .ft-dot-sm {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        @media (max-width: 720px) {
+            .sum-cards { grid-template-columns: 1fr 1fr; }
+            .sum-card.hi { grid-column: span 2; }
+            .ft-row { grid-template-columns: 1fr 1fr; }
+            .pl-thead, .pl-row { grid-template-columns: 1.5fr 1fr 1.5fr; }
+            .pl-thead span:nth-child(4), .pl-thead span:nth-child(5),
+            .pl-row > *:nth-child(4), .pl-row > *:nth-child(5) { display: none; }
+        }
+    </style>
+</head>
+<body>
+<div class="app">
+
+    <header class="hdr">
+        <p class="hdr-eye">// 3D Print Studio</p>
+        <div class="hdr-title">FILAMENT<span class="hl">CALC</span></div>
+        <p class="hdr-sub">Cost &amp; Spool Calculator</p>
+        <div class="hdr-rule">
+            <div class="hdr-line"></div>
+            <span class="hdr-ver">v1.0</span>
+        </div>
+    </header>
+
+    <!-- 01 FILAMENT LIBRARY -->
+    <div class="panel">
+        <div class="panel-head">
+            <div class="panel-label">
+                <span class="panel-idx">01</span>
+                <h2>Filament Library</h2>
+            </div>
+            <button class="btn btn-primary" onclick="addFt()">+ Add Type</button>
+        </div>
+        <div class="panel-body">
+            <div class="ft-rows" id="ft-rows"></div>
+        </div>
+    </div>
+
+    <!-- 02 PRINT QUEUE -->
+    <div class="panel">
+        <div class="panel-head">
+            <div class="panel-label">
+                <span class="panel-idx">02</span>
+                <h2>Print Queue</h2>
+            </div>
+        </div>
+        <div class="panel-body">
+            <div class="pl-thead">
+                <span>STL Name</span>
+                <span>Weight</span>
+                <span>Filament</span>
+                <span>Cost</span>
+                <span></span>
+            </div>
+            <div class="pl-rows" id="pl-rows"></div>
+            <button class="btn btn-add-row" onclick="addPl()">＋ Add Print</button>
+        </div>
+    </div>
+
+    <!-- 03 SUMMARY -->
+    <div class="panel">
+        <div class="panel-head">
+            <div class="panel-label">
+                <span class="panel-idx">03</span>
+                <h2>Project Summary</h2>
+            </div>
+            <div class="tog-wrap">
+                <span class="tog-lbl on"  id="lbl-1kg">1 KG</span>
+                <label class="toggle">
+                    <input type="checkbox" id="spool-tog" onchange="onToggle()">
+                    <div class="tog-bg"></div>
+                    <div class="tog-knob"></div>
+                </label>
+                <span class="tog-lbl off" id="lbl-740">750 G</span>
+            </div>
+        </div>
+        <div class="panel-body">
+            <div class="sum-cards">
+                <div class="sum-card">
+                    <div class="sum-lbl">Total Weight</div>
+                    <div class="sum-val" id="s-wt">0 <span class="unit">g</span></div>
+                </div>
+                <div class="sum-card">
+                    <div class="sum-lbl">Spools Needed</div>
+                    <div class="sum-val orange" id="s-sp">0</div>
+                </div>
+                <div class="sum-card hi">
+                    <div class="sum-lbl">Total Cost</div>
+                    <div class="sum-val orange" id="s-co">£0.00</div>
+                </div>
+            </div>
+            <div id="breakdown"></div>
+        </div>
+    </div>
+
+</div>
+<script>
+let ftypes = [
+    { id:1, name:'PLA',  cost:18.99, color:'#2196f3' },
+    { id:2, name:'PETG', cost:22.50, color:'#ff5722' },
+    { id:3, name:'ABS',  cost:20.00, color:'#9e9e9e' },
+    { id:4, name:'TPU',  cost:35.00, color:'#4caf50' },
+];
+let prints = [
+    { id:1, name:'', weight:null, ftId:1 }
+];
+let ftNext = 5, plNext = 2;
+
+const spoolG = () => document.getElementById('spool-tog').checked ? 750 : 1000;
+
+function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+/* ── FILAMENT TYPES ── */
+function renderFts(){
+    const c = document.getElementById('ft-rows');
+    c.innerHTML = '';
+    ftypes.forEach(ft => {
+        const el = document.createElement('div');
+        el.className = 'ft-row';
+        el.innerHTML = `
+            <div class="field">
+                <span class="flabel">Type Name</span>
+                <input type="text" value="${esc(ft.name)}" placeholder="e.g. PLA"
+                    oninput="setFt(${ft.id},'name',this.value)">
+            </div>
+            <div class="field">
+                <span class="flabel">Cost / kg (£)</span>
+                <input type="number" value="${ft.cost}" min="0" step="0.01" placeholder="0.00"
+                    oninput="setFt(${ft.id},'cost',+this.value||0)">
+            </div>
+            <div class="field">
+                <span class="flabel">Colour</span>
+                <div style="display:flex;align-items:center;gap:8px">
+                    <div class="swatch-btn" id="sw-${ft.id}" style="background:${ft.color}"
+                        onclick="document.getElementById('cp-${ft.id}').click()" title="Pick colour"></div>
+                    <input type="color" id="cp-${ft.id}" value="${ft.color}"
+                        oninput="setFt(${ft.id},'color',this.value)">
+                </div>
+            </div>
+            <button class="btn btn-del" onclick="delFt(${ft.id})" title="Remove">✕</button>
+        `;
+        c.appendChild(el);
+    });
+}
+
+function setFt(id, key, val){
+    const ft = ftypes.find(f=>f.id===id);
+    if(!ft) return;
+    ft[key] = val;
+    if(key==='color'){
+        const sw = document.getElementById(`sw-${id}`);
+        if(sw) sw.style.background = val;
+        prints.forEach(p => {
+            if(p.ftId===id){
+                const d = document.getElementById(`dot-${p.id}`);
+                if(d) d.style.background = val;
+            }
+        });
+    }
+    if(key==='name'){
+        document.querySelectorAll(`#pl-rows option[value="${id}"]`).forEach(o => {
+            o.textContent = val||'Unnamed';
+        });
+    }
+    updateSummary();
+}
+
+function addFt(){
+    const cols = ['#e91e63','#9c27b0','#00bcd4','#8bc34a','#ffc107','#ff9800','#795548'];
+    const newFt = { id:ftNext++, name:'', cost:20.00, color:cols[Math.floor(Math.random()*cols.length)] };
+    ftypes.push(newFt);
+    renderFts();
+    document.querySelectorAll('#pl-rows select').forEach(sel => {
+        const o = document.createElement('option');
+        o.value = newFt.id;
+        o.textContent = 'Unnamed';
+        sel.appendChild(o);
+    });
+}
+
+function delFt(id){
+    if(ftypes.length<=1) return;
+    ftypes = ftypes.filter(f=>f.id!==id);
+    let changed = false;
+    prints.forEach(p=>{ if(p.ftId===id){ p.ftId=ftypes[0].id; changed=true; } });
+    renderFts();
+    if(changed) renderPls(); else {
+        document.querySelectorAll(`#pl-rows option[value="${id}"]`).forEach(o=>o.remove());
+        updateSummary();
+    }
+}
+
+/* ── PRINT LINES ── */
+function renderPls(){
+    const c = document.getElementById('pl-rows');
+    c.innerHTML = '';
+    if(!prints.length){
+        c.innerHTML = '<div class="empty">// no prints added yet</div>';
+        updateSummary(); return;
+    }
+    prints.forEach(p => {
+        const ft = ftypes.find(f=>f.id===p.ftId)||ftypes[0];
+        const el = document.createElement('div');
+        el.className = 'pl-row';
+        const opts = ftypes.map(f=>`<option value="${f.id}"${f.id===p.ftId?' selected':''}>${esc(f.name)||'Unnamed'}</option>`).join('');
+        el.innerHTML = `
+            <input type="text" value="${esc(p.name)}" placeholder="STL name..."
+                oninput="setPl(${p.id},'name',this.value)">
+            <input type="number" value="${p.weight??''}" min="0" step="0.1" placeholder="0"
+                oninput="setPl(${p.id},'weight',+this.value||0);refreshPl(${p.id})">
+            <div class="ft-badge">
+                <span class="ft-dot" id="dot-${p.id}" style="background:${ft.color}"></span>
+                <div class="sel-wrap" style="flex:1">
+                    <select onchange="setPl(${p.id},'ftId',+this.value);refreshPl(${p.id})">${opts}</select>
+                </div>
+            </div>
+            <span class="line-cost" id="lc-${p.id}">${lineCost(p)}</span>
+            <button class="btn btn-del" onclick="delPl(${p.id})">✕</button>
+        `;
+        c.appendChild(el);
+    });
+    updateSummary();
+}
+
+function lineCost(p){
+    const w = p.weight||0;
+    const ft = ftypes.find(f=>f.id===p.ftId);
+    if(!ft||w===0) return '—';
+    return '£'+((w/1000)*ft.cost).toFixed(2);
+}
+
+function setPl(id, key, val){
+    const p = prints.find(x=>x.id===id);
+    if(p) p[key]=val;
+}
+
+function refreshPl(id){
+    const p = prints.find(x=>x.id===id);
+    if(!p) return;
+    const ft = ftypes.find(f=>f.id===p.ftId);
+    const dot = document.getElementById(`dot-${id}`);
+    if(dot&&ft) dot.style.background = ft.color;
+    const lc = document.getElementById(`lc-${id}`);
+    if(lc) lc.textContent = lineCost(p);
+    updateSummary();
+}
+
+function addPl(){
+    prints.push({ id:plNext++, name:'', weight:null, ftId:ftypes[0]?.id||1 });
+    renderPls();
+    setTimeout(()=>{
+        const rows = document.querySelectorAll('#pl-rows .pl-row');
+        const last = rows[rows.length-1];
+        if(last) last.querySelector('input[type="text"]')?.focus();
+    },30);
+}
+
+function delPl(id){
+    prints = prints.filter(p=>p.id!==id);
+    renderPls();
+}
+
+/* ── TOGGLE ── */
+function onToggle(){
+    const is740 = document.getElementById('spool-tog').checked;
+    document.getElementById('lbl-1kg').className = 'tog-lbl '+(is740?'off':'on');
+    document.getElementById('lbl-740').className  = 'tog-lbl '+(is740?'on':'off');
+    updateSummary();
+}
+
+/* ── SUMMARY ── */
+function updateSummary(){
+    const sw = spoolG();
+    const map = {};
+    ftypes.forEach(ft=>{ map[ft.id]={ft, g:0, cost:0}; });
+    let totalG=0, totalCost=0, totalSpools=0;
+
+    prints.forEach(p=>{
+        const w = p.weight||0;
+        const ft = ftypes.find(f=>f.id===p.ftId);
+        if(ft && map[ft.id]!==undefined){
+            map[ft.id].g    += w;
+            map[ft.id].cost += (w/1000)*ft.cost;
+            totalG    += w;
+            totalCost += (w/1000)*ft.cost;
+        }
+    });
+
+    Object.values(map).forEach(t=>{ if(t.g>0) totalSpools += Math.ceil(t.g/sw); });
+
+    document.getElementById('s-wt').innerHTML = `${totalG.toFixed(0)} <span class="unit">g</span>`;
+    document.getElementById('s-sp').textContent = totalSpools;
+    document.getElementById('s-co').textContent = '£'+totalCost.toFixed(2);
+
+    const used = Object.values(map).filter(t=>t.g>0);
+    const bd = document.getElementById('breakdown');
+
+    if(!used.length){
+        bd.innerHTML = '<p style="font-family:var(--font-mono);font-size:11px;color:var(--text-dim);letter-spacing:2px;text-align:center;padding:18px 0">// add prints to see breakdown</p>';
+        return;
+    }
+
+    let rows = '';
+    used.forEach(t=>{
+        const spools = Math.ceil(t.g/sw);
+        const rem    = t.g % sw;
+        const lastLbl = rem===0 ? 'full' : Math.round((rem/sw)*100)+'%';
+        rows += `<tr>
+            <td><div class="ft-cell">
+                <span class="ft-dot-sm" style="background:${t.ft.color}"></span>
+                ${esc(t.ft.name)||'Unnamed'}
+            </div></td>
+            <td class="td-bright">${t.g.toFixed(1)}g</td>
+            <td class="td-bright">${spools} <span style="color:var(--text-dim);font-size:11px">(${lastLbl})</span></td>
+            <td class="td-cost">£${t.cost.toFixed(2)}</td>
+        </tr>`;
+    });
+
+    bd.innerHTML = `
+        <div class="bk-sep">
+            <p class="bk-title">Per-Filament Breakdown</p>
+            <table class="bk-table">
+                <thead><tr>
+                    <th>Filament</th><th>Weight</th><th>Spools</th><th>Cost</th>
+                </tr></thead>
+                <tbody>${rows}</tbody>
+            </table>
+        </div>`;
+}
+
+renderFts();
+renderPls();
+</script>
+</body>
+</html>

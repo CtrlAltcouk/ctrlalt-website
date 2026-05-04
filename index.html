@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CtrlAlt · Tools, files, and gear for 3D printing.</title>
+
+<link rel="icon" href="assets/ChrisLogo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="colors_and_type.css">
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: { extend: { colors: { pink: { DEFAULT: '#f7a4a2' } } } },
+    corePlugins: { preflight: false },
+  };
+</script>
+
+<script src="https://unpkg.com/lucide@latest"></script>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<!-- Three.js + 3MF loader exposed on window for the React app to consume -->
+<script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.160.1/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.160.1/examples/jsm/"
+    }
+  }
+</script>
+<script type="module">
+  import * as THREE from 'three';
+  import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+  import { ThreeMFLoader } from 'three/addons/loaders/3MFLoader.js';
+  window.THREE = THREE;
+  window.OrbitControls = OrbitControls;
+  window.ThreeMFLoader = ThreeMFLoader;
+  window.dispatchEvent(new Event('three-ready'));
+</script>
+
+<style>
+  html, body { background: var(--bg-0); color: var(--fg-1); font-family: var(--font-body); margin: 0; }
+  body { font-size: 16px; line-height: 1.5; }
+  * { box-sizing: border-box; }
+  ::selection { background: var(--brand-pink); color: #0a0a0b; }
+  input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 16px; height: 16px; }
+  input[type="range"] { -webkit-appearance: none; appearance: none; background: transparent; }
+</style>
+</head>
+<body>
+
+<div id="root"></div>
+
+<script type="text/babel" src="site/Primitives.jsx"></script>
+<script type="text/babel" src="site/Navbar.jsx"></script>
+<script type="text/babel" src="site/Landing.jsx"></script>
+<script type="text/babel" src="site/Tools.jsx"></script>
+<script type="text/babel" src="site/Files.jsx"></script>
+<script type="text/babel" src="site/About.jsx"></script>
+
+<script type="text/babel">
+function App() {
+  const [active, setActive] = React.useState('home');
+
+  React.useEffect(() => {
+    const sections = [
+      { id: 'home',  el: document.getElementById('home-section') },
+      { id: 'tools', el: document.getElementById('tools-section') },
+      { id: 'files', el: document.getElementById('files-section') },
+      { id: 'about', el: document.getElementById('about-section') },
+    ].filter(s => s.el);
+    const onScroll = () => {
+      const y = window.scrollY + 120;
+      let current = 'home';
+      for (const s of sections) { if (s.el.offsetTop <= y) current = s.id; }
+      setActive(current);
+    };
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  const navigate = (id) => {
+    if (id === 'home') window.scrollTo({ top: 0, behavior: 'smooth' });
+    else document.getElementById(`${id}-section`)?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  return (
+    <div>
+      <Navbar active={active} onNavigate={navigate} buttonBlack={true} />
+      <main>
+        <div id="home-section">
+          <HeroSection heroVariant="stack" headline="direct" />
+        </div>
+        <ToolsSection />
+        <FilesSection layout="grid" />
+        <AboutSection />
+      </main>
+    </div>
+  );
+}
+
+const mount = () => {
+  if (!window.Navbar || !window.HeroSection || !window.ToolsSection || !window.FilesSection || !window.AboutSection) {
+    return setTimeout(mount, 40);
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+};
+mount();
+</script>
+
+</body>
+</html>
