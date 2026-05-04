@@ -193,7 +193,7 @@ function ViewToggleButton({ icon, label, active, onClick }) {
   );
 }
 
-function FileCard({ name, file, diff, category, nozzle, layer, infill, material, supports, blurb, thumb, url }) {
+function FileCard({ name, file, diff, category, nozzle, layer, infill, material, supports, blurb, thumb, url, github }) {
   const [hover, setHover] = React.useState(false);
   return (
     <div
@@ -248,9 +248,24 @@ function FileCard({ name, file, diff, category, nozzle, layer, infill, material,
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginTop: 'auto' }}>
-        <span style={{ fontSize: 11, color: 'var(--fg-3)', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-          Creality Cloud
-        </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ fontSize: 11, color: 'var(--fg-3)', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+            Creality Cloud
+          </span>
+          {github && (
+            <a href={github} target="_blank" rel="noreferrer" title="View on GitHub" style={{
+              display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+              width: 28, height: 28, borderRadius: 6, textDecoration: 'none',
+              background: 'var(--bg-3)', border: '1px solid var(--line-1)',
+              color: 'var(--fg-2)', transition: 'all 200ms cubic-bezier(0.16,1,0.3,1)',
+            }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--brand-pink-line)'; e.currentTarget.style.color = 'var(--fg-1)'; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--line-1)'; e.currentTarget.style.color = 'var(--fg-2)'; }}
+            >
+              <LucideIcon name="Github" size={14} />
+            </a>
+          )}
+        </div>
         <a href={url} target="_blank" rel="noreferrer" style={{ textDecoration: 'none' }}>
           <Button size="sm" icon="Download">Download</Button>
         </a>
@@ -259,7 +274,7 @@ function FileCard({ name, file, diff, category, nozzle, layer, infill, material,
   );
 }
 
-function FileRow({ name, file, diff, category, nozzle, layer, infill, material, supports, thumb, url, last }) {
+function FileRow({ name, file, diff, category, nozzle, layer, infill, material, supports, thumb, url, github, last }) {
   const [hover, setHover] = React.useState(false);
   return (
     <div
@@ -297,9 +312,24 @@ function FileRow({ name, file, diff, category, nozzle, layer, infill, material, 
       <div className="hidden lg:block" style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--fg-3)', minWidth: 130, textAlign: 'right', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
         {file}
       </div>
-      <a href={url} target="_blank" rel="noreferrer" style={{ textDecoration: 'none' }}>
-        <Button size="sm" icon="Download">Download</Button>
-      </a>
+      <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+        {github && (
+          <a href={github} target="_blank" rel="noreferrer" title="View on GitHub" style={{
+            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+            width: 32, height: 32, borderRadius: 6, textDecoration: 'none',
+            background: 'var(--bg-3)', border: '1px solid var(--line-1)',
+            color: 'var(--fg-2)', transition: 'all 200ms cubic-bezier(0.16,1,0.3,1)',
+          }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--brand-pink-line)'; e.currentTarget.style.color = 'var(--fg-1)'; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--line-1)'; e.currentTarget.style.color = 'var(--fg-2)'; }}
+          >
+            <LucideIcon name="Github" size={15} />
+          </a>
+        )}
+        <a href={url} target="_blank" rel="noreferrer" style={{ textDecoration: 'none' }}>
+          <Button size="sm" icon="Download">Download</Button>
+        </a>
+      </div>
     </div>
   );
 }
