@@ -83,6 +83,16 @@ const FILES = [
     url: "https://www.crealitycloud.com/model-detail/bookcounter-e-ink-book-reading-tracker-case?source=22&profileId=69f7bbed078ec1b7afdea020",
     github: "https://github.com/CtrlAltcouk/BookCounter",
   },
+  {
+    name: "Nintendo Wii U Monitor Arm Mount / Bracket",
+    file: "nintendo_wii_u_monitor_arm_mount_bracket.3mf",
+    diff: 'easy',
+    category: "Decor",
+    nozzle: "0.4mm", layer: "0.2mm", infill: "15% grid", material: "PLA", supports: "No",
+    blurb: "Clear up your desk space with this sleek, functional monitor arm mount for the Nintendo Wii U!",
+    thumb: "https://pic2-cdn.creality.com/crealityCloud/upload/49d56acd081cdb85de9d26846a469b88.webp",
+    url: "https://www.crealitycloud.com/model-detail/nintendo-wii-u-monitor-arm-mount-bracket?source=22&profileId=69f8d4dbbd080ef0d358a730",
+  },
 // ADD_MODELS_HERE
 ];
 
