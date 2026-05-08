@@ -93,6 +93,16 @@ const FILES = [
     thumb: "https://pic2-cdn.creality.com/crealityCloud/upload/49d56acd081cdb85de9d26846a469b88.webp",
     url: "https://www.crealitycloud.com/model-detail/nintendo-wii-u-monitor-arm-mount-bracket?source=22&profileId=69f8d4dbbd080ef0d358a730",
   },
+  {
+    name: "3D Printer Files | 3MF File | Creality Falcon Laser Module Adapter - Universal Mount Plate | Creality Cloud",
+    file: "3d_printer_files_3mf_file_creality_falcon_laser_module_adapter_universal_mount_plate_creality_cloud.3mf",
+    diff: 'easy',
+    category: "Electronics",
+    nozzle: "0.4mm", layer: "0.2mm", infill: "15% grid", material: "PLA", supports: "No",
+    blurb: "Expand the compatibility of your Creality Falcon Laser Engraver with this custom-designed mounting adapter!",
+    thumb: "https://pic2-cdn.creality.com/crealityCloud/upload/8827671b1ed9ceb0e16f6ae57ec358cb.webp",
+    url: "https://www.crealitycloud.com/model-detail/creality-falcon-laser-module-adapter-universal-mount-plate?profileId=69fa2be4bd080ef0d3639f2b",
+  },
 // ADD_MODELS_HERE
 ];
 
